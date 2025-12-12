@@ -68,33 +68,3 @@ CREATE TABLE "IDENT_Intervals" (
     CONSTRAINT "fk_intervals_doctor" FOREIGN KEY ("DoctorId") 
         REFERENCES "IDENT_Doctors"("Id") ON DELETE CASCADE
 );
-
-BEGIN;
-INSERT INTO "IDENT_Branches" ("Id", "Name") VALUES (1, 'ТЕСТ: Стоматология на Центральной');
-INSERT INTO "IDENT_Branches" ("Id", "Name") VALUES (2, 'ТЕСТ: Клиника на Северной');
-INSERT INTO "IDENT_Branches" ("Id", "Name") VALUES (3, 'ТЕСТ: Детское отделение');
-INSERT INTO "IDENT_Branches" ("Id", "Name") VALUES (4, 'ТЕСТ: Филиал "Премиум"');
-INSERT INTO "IDENT_Branches" ("Id", "Name") VALUES (5, 'ТЕСТ: Ортодонтический центр');
-
-INSERT INTO "IDENT_Doctors" ("Id", "Name") VALUES (101, 'ТЕСТ: Смирнов Алексей Петрович');
-INSERT INTO "IDENT_Doctors" ("Id", "Name") VALUES (102, 'ТЕСТ: Иванова Мария Викторовна');
-INSERT INTO "IDENT_Doctors" ("Id", "Name") VALUES (103, 'ТЕСТ: Попов Сергей Александрович');
-INSERT INTO "IDENT_Doctors" ("Id", "Name") VALUES (104, 'ТЕСТ: Ковалев Дмитрий Игоревич');
-INSERT INTO "IDENT_Doctors" ("Id", "Name") VALUES (105, 'ТЕСТ: Кузнецова Ольга Сергеевна');
-INSERT INTO "IDENT_Doctors" ("Id", "Name") VALUES (106, 'ТЕСТ: Новикова Анна Владимировна');
-
-INSERT INTO "IDENT_Tickets" ("Id", "DateAndTime", "ClientPhone", "ClientEmail", "FormName", "ClientFullName", "PlanStart", "PlanEnd", "Comment", "DoctorId", "DoctorName", "UtmSource", "HttpReferer")
-VALUES ('550e8400-e29b-41d4-a716-446655440001', '2025-12-16 14:30:00', '+7 911 123-45-67', 'ivanov@example.com', 'ТЕСТ: Онлайн-запись с главной страницы', 'ТЕСТ: Иванов Иван Иванович', '2025-12-20 09:00:00', '2025-12-20 09:30:00', 'ТЕСТ: Болит верхний зуб справа', 101, 'ТЕСТ: Смирнов Алексей Петрович', 'ТЕСТ: google', 'https://stomatologia-example.ru/');
-
-INSERT INTO "IDENT_Intervals" ("BranchId", "DoctorId", "StartDateTime", "LengthInMinutes", "IsBusy") VALUES (1, 101, '2025-12-20 09:00:00', 30, true);
-INSERT INTO "IDENT_Intervals" ("BranchId", "DoctorId", "StartDateTime", "LengthInMinutes", "IsBusy") VALUES (1, 101, '2025-12-20 09:30:00', 30, false);
-INSERT INTO "IDENT_Intervals" ("BranchId", "DoctorId", "StartDateTime", "LengthInMinutes", "IsBusy") VALUES (1, 102, '2025-12-20 10:00:00', 60, false);
-INSERT INTO "IDENT_Intervals" ("BranchId", "DoctorId", "StartDateTime", "LengthInMinutes", "IsBusy") VALUES (2, 105, '2025-12-20 11:00:00', 45, false);
-INSERT INTO "IDENT_Intervals" ("BranchId", "DoctorId", "StartDateTime", "LengthInMinutes", "IsBusy") VALUES (3, 103, '2025-12-20 14:00:00', 120, true);
-INSERT INTO "IDENT_Intervals" ("BranchId", "DoctorId", "StartDateTime", "LengthInMinutes", "IsBusy") VALUES (4, 104, '2025-12-21 08:00:00', 90, false);
-INSERT INTO "IDENT_Intervals" ("BranchId", "DoctorId", "StartDateTime", "LengthInMinutes", "IsBusy") VALUES (5, 106, '2025-12-21 13:00:00', 60, true);
-INSERT INTO "IDENT_Intervals" ("BranchId", "DoctorId", "StartDateTime", "LengthInMinutes", "IsBusy") VALUES (1, 101, '2025-12-21 16:00:00', 30, false);
-INSERT INTO "IDENT_Intervals" ("BranchId", "DoctorId", "StartDateTime", "LengthInMinutes", "IsBusy") VALUES (2, 102, '2025-12-22 09:00:00', 45, false);
-INSERT INTO "IDENT_Intervals" ("BranchId", "DoctorId", "StartDateTime", "LengthInMinutes", "IsBusy") VALUES (3, 103, '2025-12-22 14:00:00', 120, false);
-
-COMMIT;
