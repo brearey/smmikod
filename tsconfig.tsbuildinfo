@@ -1,1 +1,1 @@
-{"root":["./src/index.ts","./src/__tests__/bookings.test.ts","./src/__tests__/events.test.ts","./src/database/prisma.ts","./src/database/seed.ts","./src/entities/bookings/bookings.controller.ts","./src/entities/bookings/bookings.model.ts","./src/entities/events/events.controller.ts","./src/entities/events/events.model.ts","./src/types/app-types.ts","./src/utils/logger.ts"],"version":"5.9.3"}
+{"root":["./src/index.ts","./src/types/app-types.ts","./src/utils/logger.ts"],"version":"5.9.3"}

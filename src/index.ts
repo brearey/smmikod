@@ -1,6 +1,6 @@
 import { config } from 'dotenv'
 config() // dotenv
-import express, { Application } from 'express'
+import express, { Application, Request, Response } from 'express'
 import bodyParser from 'body-parser'
 import { ApiResponse } from './types/app-types'
 import { logger } from './utils/logger'
@@ -11,7 +11,7 @@ const PORT = process.env.SERVER_PORT || 5100
 app.use(bodyParser.json())
 app.use(logger.request)
 
-app.get('/api/health', (req, res) => {
+app.get('/api/health', (req: Request, res: Response) => {
 	const response: ApiResponse = {
 		success: true,
 		message: 'ok',
