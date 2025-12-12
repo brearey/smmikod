@@ -11,12 +11,6 @@ up:
 down:
 	docker compose down -v
 
-db_init:
-	psql -h $(DB_HOST) -d $(POSTGRES_DB) -U $(POSTGRES_USER) -f src/database/init.sql
-
-db_seed:
-	psql -h $(DB_HOST) -d $(POSTGRES_DB) -U $(POSTGRES_USER) -f src/database/seed.sql
-
 connect:
 	psql -h $(DB_HOST) -d $(POSTGRES_DB) -U $(POSTGRES_USER)
 
