@@ -17,9 +17,8 @@ const pool = createPool(
 )
 
 app.use(bodyParser.json())
-app.use(logger.request)
 
-app.get('/health', (req: Request, res: Response) => {
+app.get('/health', logger.request, (req: Request, res: Response) => {
 	const response: ApiResponse = {
 		success: true,
 		message: 'ok',
@@ -29,7 +28,7 @@ app.get('/health', (req: Request, res: Response) => {
 	res.status(200).json(response)
 })
 
-app.get('/GetTickets', checkAuth, async (req: Request, res: Response) => {
+app.get('/GetTickets', logger.getTickets, checkAuth, async (req: Request, res: Response) => {
   try {    
     const dateTimeFromStr = req.query.dateTimeFrom as string
     const dateTimeToStr = req.query.dateTimeTo as string

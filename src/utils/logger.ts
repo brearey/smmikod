@@ -14,4 +14,8 @@ export const logger = {
 		logger.instance.info(`${logger.now} | REQUEST | ${req.method} | ${req.path}`)
 		next()
 	},
+  getTickets: (req: Request, res: Response, next: NextFunction) => {
+		logger.instance.info(`${logger.now} | REQUEST | ${req.method} | ${req.path} | dateTimeFrom = ${req.query.dateTimeFrom}  | dateTimeTo =${req.query.dateTimeTo} | limit = ${req.query?.limit} | offset = ${req.query?.offset}`)
+		next()
+	},
 }

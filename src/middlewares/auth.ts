@@ -6,6 +6,8 @@ import { logger } from '../utils/logger'
 function checkAuth(req: Request, res: Response, next: NextFunction) {
   const integrationKey = req.headers['ident-integration-key'] as string
   const expectedKey = process.env.IDENT_INTEGRATION_KEY
+
+  logger.info(`integrationKey = ${integrationKey} expectedKey = ${expectedKey}`)
   
   if (!integrationKey || integrationKey !== expectedKey) {
     const msg = 'Доступ запрещен'

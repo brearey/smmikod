@@ -24,7 +24,7 @@ test:
 
 test_prod:
 	curl -X GET \
-  "http://176.109.105.218:$(SERVER_PORT)/GetTickets?dateTimeFrom=2025-01-05T14%3a45%3a37%2b03%3a00&dateTimeTo=2025-03-15T14%3a45%3a37%2b03%3a00&limit=500&offset=0" \
+  "http://176.109.105.218:$(SERVER_PORT)/GetTickets?dateTimeFrom=2025-12-12T14%3a45%3a37%2b03%3a00&dateTimeTo=2025-12-30T14%3a45%3a37%2b03%3a00&limit=500&offset=0" \
   -H "Content-Type: application/json" \
   -H "Accept: application/json" \
   -H "IDENT-Integration-Key: $(IDENT_INTEGRATION_KEY)" \
