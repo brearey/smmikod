@@ -15,8 +15,9 @@ const PORT = process.env.SERVER_PORT || 5100
 let pool: Pool
 
 app.use(bodyParser.json())
+app.use(logger.request)
 
-app.get('/health', logger.request, (req: Request, res: Response) => {
+app.get('/health', (req: Request, res: Response) => {
 	const response: ApiResponse = {
 		success: true,
 		message: 'ok',
@@ -26,7 +27,7 @@ app.get('/health', logger.request, (req: Request, res: Response) => {
 	res.status(200).json(response)
 })
 
-app.get('/GetTickets', logger.getTickets, checkAuth, async (req: Request, res: Response) => {
+app.get('/GetTickets', checkAuth, async (req: Request, res: Response) => {
   try {    
     const dateTimeFromStr = req.query.dateTimeFrom as string
     const dateTimeToStr = req.query.dateTimeTo as string
@@ -100,7 +101,7 @@ app.get('/GetTickets', logger.getTickets, checkAuth, async (req: Request, res: R
   }
 })
 
-app.post('/PostTimeTable', logger.request, checkAuth, async (req: Request, res: Response) => {
+app.post('/PostTimeTable', checkAuth, async (req: Request, res: Response) => {
   try {
     const { Doctors, Branches, Intervals } = req.body || {}
 

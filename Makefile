@@ -56,6 +56,10 @@ test_timetable:
 	-H "IDENT-Integration-Key: $(IDENT_INTEGRATION_KEY)" \
 	-d @__tests__/timetable.json
 
+log_clean:
+	@rm ~/.pm2/logs/index-out.log
+	@rm ~/.pm2/logs/index-error.log
+
 clean:
 	@npm run clean
 	@rm -rf dist
