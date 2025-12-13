@@ -4,9 +4,10 @@ DB_HOST := localhost
 
 all: start
 
-start:
-	npm run clean
+build:
 	npm run build
+
+start:
 	npm run prod
 
 stop:
@@ -54,3 +55,7 @@ test_timetable:
 	-H "Accept: application/json" \
 	-H "IDENT-Integration-Key: $(IDENT_INTEGRATION_KEY)" \
 	-d @__tests__/timetable.json
+
+clean:
+	@npm run clean
+	@rm -rf dist

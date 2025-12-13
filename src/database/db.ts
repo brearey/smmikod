@@ -3,8 +3,7 @@ import { logger } from '../utils/logger'
 
 function createPool(host: string, user: string, password: string) {
   try {
-    // TODO: debug
-    console.log(`host = ${host} user = ${user} password = ${password}`)
+    logger.info(`host = ${host} user = ${user} password = ${password}`)
     const pool = new Pool({
       host: host,
       user: user,
@@ -14,8 +13,7 @@ function createPool(host: string, user: string, password: string) {
       connectionTimeoutMillis: 2000,
       maxLifetimeSeconds: 60
     })
-    // TODO: debug
-    console.log(`pool created totalCount = ${pool.totalCount}`)
+    logger.info(`pool created totalCount = ${pool.totalCount}`)
     return pool
   } catch(e) {
     logger.error(e as Error)

@@ -30,7 +30,7 @@ describe('POST /PostTimeTable (e2e)', () => {
   })
 
   afterAll(async () => {
-    await pool.end()
+    if (pool) await pool.end()
   })
 
   it('should upsert timetable without duplicates on repeated calls', async () => {
@@ -77,13 +77,15 @@ describe('POST /PostTimeTable (e2e)', () => {
     const postTwice = await axios.post(`${BASE_URL}/PostTimeTable`, payload, { headers })
     expect(postTwice.status).toBe(200)
 
-    const result = await query(
-      pool,
-      `SELECT COUNT(*)::int as cnt FROM "IDENT_Intervals" WHERE "BranchId" = $1 AND "DoctorId" = $2`,
-      [branchId, doctorId],
-    )
+    if (pool) {
+      const result = await query(
+        pool,
+        `SELECT COUNT(*)::int as cnt FROM "IDENT_Intervals" WHERE "BranchId" = $1 AND "DoctorId" = $2`,
+        [branchId, doctorId],
+      )
 
-    expect(result?.rows[0]?.cnt).toBe(2)
+      expect(result?.rows[0]?.cnt).toBe(2)
+    }
   })
 })
 

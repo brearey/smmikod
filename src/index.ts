@@ -8,14 +8,11 @@ import { getTickets } from './models/ticket'
 import {createPool} from './database/db'
 import { checkAuth } from './middlewares/auth'
 import { upsertBranches, upsertDoctors, upsertIntervals } from './models/timetable'
+import { Pool } from 'pg'
 
 const app: Application = express()
 const PORT = process.env.SERVER_PORT || 5100
-const pool = createPool(
-  'localhost',
-  process.env.POSTGRES_USER as string,
-  process.env.POSTGRES_PASSWORD as string,
-)
+let pool: Pool
 
 app.use(bodyParser.json())
 
@@ -66,8 +63,15 @@ app.get('/GetTickets', logger.getTickets, checkAuth, async (req: Request, res: R
       }
     }
     
-    const result = await getTickets(pool, dateTimeFrom, dateTimeTo, limit, offset)
-    
+    let result
+    if (pool) {
+      result = await getTickets(pool, dateTimeFrom, dateTimeTo, limit, offset)
+    } else {
+      const msg = 'Ошибка в БД'
+      logger.error(new Error(msg))
+      return res.status(500).send(msg)
+    }
+
     if (result === null) {
       const msg = 'Ошибка в БД'
       logger.error(new Error(msg))
@@ -130,25 +134,31 @@ app.post('/PostTimeTable', logger.request, checkAuth, async (req: Request, res: 
       }
     }
 
-    const branchesResult = await upsertBranches(pool, Branches)
-    if (branchesResult === null) {
-      const msg = 'Ошибка сохранения филиалов'
-      logger.error(new Error(msg))
-      return res.status(500).send(msg)
-    }
+    if (pool) {
+      const branchesResult = await upsertBranches(pool, Branches)
+      if (branchesResult === null) {
+        const msg = 'Ошибка сохранения филиалов'
+        logger.error(new Error(msg))
+        return res.status(500).send(msg)
+      }
 
-    const doctorsResult = await upsertDoctors(pool, Doctors)
-    if (doctorsResult === null) {
-      const msg = 'Ошибка сохранения докторов'
-      logger.error(new Error(msg))
-      return res.status(500).send(msg)
-    }
+      const doctorsResult = await upsertDoctors(pool, Doctors)
+      if (doctorsResult === null) {
+        const msg = 'Ошибка сохранения докторов'
+        logger.error(new Error(msg))
+        return res.status(500).send(msg)
+      }
 
-    const intervalsResult = await upsertIntervals(pool, Intervals)
-    if (intervalsResult === null) {
-      const msg = 'Ошибка сохранения расписания'
-      logger.error(new Error(msg))
-      return res.status(500).send(msg)
+      const intervalsResult = await upsertIntervals(pool, Intervals)
+      if (intervalsResult === null) {
+        const msg = 'Ошибка сохранения расписания'
+        logger.error(new Error(msg))
+        return res.status(500).send(msg)
+      } else {
+        const msg = 'Ошибка в БД'
+        logger.error(new Error(msg))
+        return res.status(500).send(msg)
+      }
     }
 
     return res.status(200).send('Данные успешно сохранены')
@@ -160,4 +170,9 @@ app.post('/PostTimeTable', logger.request, checkAuth, async (req: Request, res: 
 
 app.listen(PORT, () => {
 	logger.info(`Server running at http://localhost:${PORT}`)
+  pool = createPool(
+    'localhost',
+    process.env.POSTGRES_USER as string,
+    process.env.POSTGRES_PASSWORD as string,
+  ) as Pool
 })

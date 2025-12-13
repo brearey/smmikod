@@ -5,8 +5,8 @@
 	"main": "index.js",
 	"scripts": {
 		"build": "tsc --build",
-		"clean": "tsc --build --clean",
-    "prod": "NODE_ENV=production pm2 start --attach ./dist/index.js",
+		"clean": "tsc --build --clean && rm -rf dist",
+    "prod": "NODE_ENV=production pm2 start --attach ./dist/src/index.js",
 		"dev": "ts-node-dev --rs ./src/index.ts",
 		"lint": "npx eslint 'src/**/*.{ts,js}'",
 		"format": "prettier --write .",
