@@ -110,47 +110,73 @@ app.post('/PostTimeTable', checkAuth, async (req: Request, res: Response) => {
       return res.status(400).send('Поля Doctors, Branches, Intervals должны быть массивами')
     }
 
-    for (const branch of Branches) {
-      if (typeof branch.Id !== 'number' || typeof branch.Name !== 'string') {
-        return res.status(400).send('Неверный формат Branches')
+    // Валидация Branches
+    for (let i = 0; i < Branches.length; i++) {
+      const branch = Branches[i]
+      if (!branch || typeof branch.Id !== 'number' || typeof branch.Name !== 'string') {
+        return res.status(400).send(`Неверный формат Branches[${i}]: ожидается {Id: number, Name: string}`)
       }
     }
 
-    for (const doctor of Doctors) {
-      if (typeof doctor.Id !== 'number' || typeof doctor.Name !== 'string') {
-        return res.status(400).send('Неверный формат Doctors')
+    // Валидация Doctors
+    for (let i = 0; i < Doctors.length; i++) {
+      const doctor = Doctors[i]
+      if (!doctor || typeof doctor.Id !== 'number' || typeof doctor.Name !== 'string') {
+        return res.status(400).send(`Неверный формат Doctors[${i}]: ожидается {Id: number, Name: string}`)
       }
     }
 
-    for (const interval of Intervals) {
+    // Валидация Intervals
+    for (let i = 0; i < Intervals.length; i++) {
+      const interval = Intervals[i]
+      if (!interval) {
+        return res.status(400).send(`Неверный формат Intervals[${i}]: объект отсутствует`)
+      }
       const { BranchId, DoctorId, StartDateTime, LengthInMinutes, IsBusy } = interval
+      
+      if (typeof BranchId !== 'number' || typeof DoctorId !== 'number' || 
+          typeof LengthInMinutes !== 'number' || typeof IsBusy !== 'boolean') {
+        return res.status(400).send(
+          `Неверный формат Intervals[${i}]: ожидается {BranchId: number, DoctorId: number, StartDateTime: string, LengthInMinutes: number, IsBusy: boolean}`
+        )
+      }
+      
+      if (typeof StartDateTime !== 'string') {
+        return res.status(400).send(`Неверный формат Intervals[${i}]: StartDateTime должен быть строкой`)
+      }
+      
       const parsedDate = new Date(StartDateTime)
-      if (
-        typeof BranchId !== 'number' ||
-        typeof DoctorId !== 'number' ||
-        typeof LengthInMinutes !== 'number' ||
-        typeof IsBusy !== 'boolean' ||
-        isNaN(parsedDate.getTime())
-      ) {
-        return res.status(400).send('Неверный формат Intervals или неверная дата')
+      if (isNaN(parsedDate.getTime())) {
+        return res.status(400).send(`Неверная дата в Intervals[${i}]: StartDateTime = "${StartDateTime}"`)
       }
     }
 
-    if (pool) {
+    if (!pool) {
+      const msg = 'База данных не инициализирована'
+      logger.error(new Error(msg))
+      return res.status(500).send(msg)
+    }
+
+    // Сохранение данных (пустые массивы обрабатываются корректно функциями upsert)
+    if (Branches.length > 0) {
       const branchesResult = await upsertBranches(pool, Branches)
       if (branchesResult === null) {
         const msg = 'Ошибка сохранения филиалов'
         logger.error(new Error(msg))
         return res.status(500).send(msg)
       }
+    }
 
+    if (Doctors.length > 0) {
       const doctorsResult = await upsertDoctors(pool, Doctors)
       if (doctorsResult === null) {
         const msg = 'Ошибка сохранения докторов'
         logger.error(new Error(msg))
         return res.status(500).send(msg)
       }
+    }
 
+    if (Intervals.length > 0) {
       const intervalsResult = await upsertIntervals(pool, Intervals)
       if (intervalsResult === null) {
         const msg = 'Ошибка сохранения расписания'
@@ -176,3 +202,4 @@ app.listen(PORT, () => {
     process.env.POSTGRES_DB as string,
   ) as Pool
 })
+
