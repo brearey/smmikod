@@ -4,3 +4,4 @@ dist/
 node_modules/
 generated/
 .env
+__test__/*.test.js
