@@ -167,9 +167,11 @@ app.post('/PostTimeTable', checkAuth, async (req: Request, res: Response) => {
 
 app.listen(PORT, () => {
 	logger.info(`Server running at http://localhost:${PORT}`)
+  const dbHost = process.env.POSTGRES_HOST || 'localhost'
   pool = createPool(
-    'localhost',
+    dbHost,
     process.env.POSTGRES_USER as string,
     process.env.POSTGRES_PASSWORD as string,
+    process.env.POSTGRES_DB as string,
   ) as Pool
 })

@@ -1,13 +1,14 @@
 import { Pool } from 'pg'
 import { logger } from '../utils/logger'
 
-function createPool(host: string, user: string, password: string) {
+function createPool(host: string, user: string, password: string, database?: string) {
   try {
-    logger.info(`host = ${host} user = ${user} password = ${password}`)
+    logger.info(`host = ${host} user = ${user} password = ${password} database = ${database || 'default'}`)
     const pool = new Pool({
       host: host,
       user: user,
       password: password,
+      database: database,
       max: 20,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 2000,

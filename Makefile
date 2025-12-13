@@ -1,24 +1,6 @@
 include .env
 
-DB_HOST := localhost
-
-all: start
-
-build:
-	npm run build
-
-start:
-	npm run prod
-
-stop:
-	pm2 stop 0
-	pm2 delete 0
-
-out:
-	tail -n 100 ~/.pm2/logs/index-out.log
-
-error:
-	tail -n 100 ~/.pm2/logs/index-error.log
+all: up
 
 up:
 	docker compose up -d --build
@@ -27,10 +9,22 @@ down:
 	docker compose down -v
 
 exec:
-	docker exec -it smmikod sh
+	docker exec -it smmikod-app sh
+
+exec-db:
+	docker exec -it smmikod-db psql -U $(POSTGRES_USER) -d $(POSTGRES_DB)
+
+logs:
+	docker logs -f smmikod-app
+
+logs-db:
+	docker logs -f smmikod-db
 
 connect:
-	psql -h $(DB_HOST) -d $(POSTGRES_DB) -U $(POSTGRES_USER)
+	psql -h $(POSTGRES_HOST) -d $(POSTGRES_DB) -U $(POSTGRES_USER)
+
+test:
+	npm run test
 
 test_tickets:
 	curl -X GET \
@@ -56,9 +50,6 @@ test_timetable:
 	-H "IDENT-Integration-Key: $(IDENT_INTEGRATION_KEY)" \
 	-d @__tests__/timetable.json
 
-log_clean:
-	@rm ~/.pm2/logs/index-out.log
-	@rm ~/.pm2/logs/index-error.log
 
 clean:
 	@npm run clean

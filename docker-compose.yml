@@ -1,7 +1,7 @@
 services:
   database:
     image: postgres:16.10-alpine3.22
-    container_name: smmikod
+    container_name: smmikod-db
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -11,6 +11,31 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./src/database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: smmikod-app
+    environment:
+      NODE_ENV: production
+      SERVER_PORT: ${SERVER_PORT:-5100}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_HOST: database
+      IDENT_INTEGRATION_KEY: ${IDENT_INTEGRATION_KEY}
+    ports:
+      - '${SERVER_PORT:-5100}:5100'
+    depends_on:
+      database:
+        condition: service_healthy
+    restart: unless-stopped
 
 volumes:
   postgres_data:
