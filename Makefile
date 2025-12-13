@@ -13,6 +13,12 @@ stop:
 	pm2 stop 0
 	pm2 delete 0
 
+out:
+	tail -n 100 ~/.pm2/logs/index-out.log
+
+error:
+	tail -n 100 ~/.pm2/logs/index-error.log
+
 up:
 	docker compose up -d --build
 
