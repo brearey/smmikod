@@ -19,6 +19,9 @@ up:
 down:
 	docker compose down -v
 
+exec:
+	docker exec -it smmikod sh
+
 connect:
 	psql -h $(DB_HOST) -d $(POSTGRES_DB) -U $(POSTGRES_USER)
 
