@@ -2,8 +2,16 @@ include .env
 
 DB_HOST := localhost
 
-all:
-	npm run dev
+all: start
+
+start:
+	npm run clean
+	npm run build
+	npm run prod
+
+stop:
+	pm2 stop 0
+	pm2 delete 0
 
 up:
 	docker compose up -d --build
