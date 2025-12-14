@@ -2,13 +2,14 @@ import { type Request, type Response, type NextFunction } from 'express'
 import { ApiError } from '../types/app-types'
 
 export const logger = {
-	now: new Date().toLocaleString(),
-	instance: console, // тут можно поставить логгер получше типа winston, pino
+	instance: console,
 	info: (message: string) => {
-		logger.instance.info(`${logger.now} | INFO | ${message}`)
+		const now = new Date().toLocaleString()
+		logger.instance.info(`${now} | INFO | ${message}`)
 	},
 	error: (error: ApiError | Error) => {
-		logger.instance.error(`${logger.now} | ERROR | ${error.name} ${error.message}`)
+		const now = new Date().toLocaleString()
+		logger.instance.error(`${now} | ERROR | ${error.name} ${error.message}`)
 	},
 	request: (req: Request, res: Response, next: NextFunction) => {
 		const timestamp = new Date().toISOString()

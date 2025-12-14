@@ -3,7 +3,7 @@ import { logger } from '../utils/logger'
 
 function createPool(host: string, user: string, password: string, database?: string) {
 	try {
-		logger.info(`host = ${host} user = ${user} password = ${password} database = ${database || 'default'}`)
+		logger.info(`Подключение к БД: host=${host}, user=${user}, database=${database || 'default'}`)
 		const pool = new Pool({
 			host: host,
 			user: user,
@@ -14,7 +14,7 @@ function createPool(host: string, user: string, password: string, database?: str
 			connectionTimeoutMillis: 2000,
 			maxLifetimeSeconds: 60,
 		})
-		logger.info(`pool created totalCount = ${pool.totalCount}`)
+		logger.info(`Пул соединений создан, totalCount=${pool.totalCount}`)
 		return pool
 	} catch (e) {
 		logger.error(e as Error)

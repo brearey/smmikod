@@ -1,26 +1,11 @@
 import { Pool } from 'pg'
 import { query } from '../database/db'
-
-type BranchDto = {
-	Id: number
-	Name: string
-}
-
-type DoctorDto = {
-	Id: number
-	Name: string
-}
-
-type IntervalDto = {
-	BranchId: number
-	DoctorId: number
-	StartDateTime: string
-	LengthInMinutes: number
-	IsBusy: boolean
-}
+import { BranchDto, DoctorDto, IntervalDto } from '../types/app-types'
 
 async function upsertBranches(pool: Pool, branches: BranchDto[]) {
-	if (!branches.length) return
+	if (!branches.length) {
+		return { rowCount: 0, rows: [] }
+	}
 
 	const values: unknown[] = []
 	const placeholders = branches.map((branch, idx) => {
@@ -30,17 +15,19 @@ async function upsertBranches(pool: Pool, branches: BranchDto[]) {
 	})
 
 	const sql = `
-    INSERT INTO "IDENT_Branches" ("Id", "Name")
-    VALUES ${placeholders.join(', ')}
-    ON CONFLICT ("Id") DO UPDATE
-    SET "Name" = EXCLUDED."Name"
-  `
+		INSERT INTO "IDENT_Branches" ("Id", "Name")
+		VALUES ${placeholders.join(', ')}
+		ON CONFLICT ("Id") DO UPDATE
+		SET "Name" = EXCLUDED."Name"
+	`
 
 	return await query(pool, sql, values)
 }
 
 async function upsertDoctors(pool: Pool, doctors: DoctorDto[]) {
-	if (!doctors.length) return
+	if (!doctors.length) {
+		return { rowCount: 0, rows: [] }
+	}
 
 	const values: unknown[] = []
 	const placeholders = doctors.map((doctor, idx) => {
@@ -50,17 +37,19 @@ async function upsertDoctors(pool: Pool, doctors: DoctorDto[]) {
 	})
 
 	const sql = `
-    INSERT INTO "IDENT_Doctors" ("Id", "Name")
-    VALUES ${placeholders.join(', ')}
-    ON CONFLICT ("Id") DO UPDATE
-    SET "Name" = EXCLUDED."Name"
-  `
+		INSERT INTO "IDENT_Doctors" ("Id", "Name")
+		VALUES ${placeholders.join(', ')}
+		ON CONFLICT ("Id") DO UPDATE
+		SET "Name" = EXCLUDED."Name"
+	`
 
 	return await query(pool, sql, values)
 }
 
 async function upsertIntervals(pool: Pool, intervals: IntervalDto[]) {
-	if (!intervals.length) return
+	if (!intervals.length) {
+		return { rowCount: 0, rows: [] }
+	}
 
 	const values: unknown[] = []
 	const placeholders = intervals.map((interval, idx) => {
@@ -76,15 +65,15 @@ async function upsertIntervals(pool: Pool, intervals: IntervalDto[]) {
 	})
 
 	const sql = `
-    INSERT INTO "IDENT_Intervals" ("BranchId", "DoctorId", "StartDateTime", "LengthInMinutes", "IsBusy")
-    VALUES ${placeholders.join(', ')}
-    ON CONFLICT ("BranchId", "DoctorId", "StartDateTime") DO UPDATE
-    SET
-      "LengthInMinutes" = EXCLUDED."LengthInMinutes",
-      "IsBusy" = EXCLUDED."IsBusy"
-  `
+		INSERT INTO "IDENT_Intervals" ("BranchId", "DoctorId", "StartDateTime", "LengthInMinutes", "IsBusy")
+		VALUES ${placeholders.join(', ')}
+		ON CONFLICT ("BranchId", "DoctorId", "StartDateTime") DO UPDATE
+		SET
+			"LengthInMinutes" = EXCLUDED."LengthInMinutes",
+			"IsBusy" = EXCLUDED."IsBusy"
+	`
 
 	return await query(pool, sql, values)
 }
 
-export { upsertBranches, upsertDoctors, upsertIntervals, BranchDto, DoctorDto, IntervalDto }
+export { upsertBranches, upsertDoctors, upsertIntervals }

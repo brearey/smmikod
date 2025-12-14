@@ -93,6 +93,20 @@ app.get('/GetTickets', checkAuth, async (req: Request, res: Response) => {
 				ClientEmail: row.ClientEmail || null,
 				FormName: row.FormName || null,
 				ClientFullName: row.ClientFullName || null,
+				ClientSurname: row.ClientSurname || null,
+				ClientName: row.ClientName || null,
+				ClientPatronymic: row.ClientPatronymic || null,
+				PlanStart: row.PlanStart ? new Date(row.PlanStart).toISOString().replace(/\.\d{3}Z$/, '+00:00') : null,
+				PlanEnd: row.PlanEnd ? new Date(row.PlanEnd).toISOString().replace(/\.\d{3}Z$/, '+00:00') : null,
+				Comment: row.Comment || null,
+				DoctorId: row.DoctorId || null,
+				DoctorName: row.DoctorName || null,
+				UtmSource: row.UtmSource || null,
+				UtmMedium: row.UtmMedium || null,
+				UtmCampaign: row.UtmCampaign || null,
+				UtmTerm: row.UtmTerm || null,
+				UtmContent: row.UtmContent || null,
+				HttpReferer: row.HttpReferer || null,
 			}
 		})
 

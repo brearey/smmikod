@@ -9,3 +9,21 @@ export type ApiResponse = {
 	data: [] | null
 	errors: ApiError[]
 }
+
+export type BranchDto = {
+	Id: number
+	Name: string
+}
+
+export type DoctorDto = {
+	Id: number
+	Name: string
+}
+
+export type IntervalDto = {
+	BranchId: number
+	DoctorId: number
+	StartDateTime: string
+	LengthInMinutes: number
+	IsBusy: boolean
+}

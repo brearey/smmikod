@@ -3,17 +3,31 @@ import { query } from '../database/db'
 
 async function getTickets(pool: Pool, dateTimeFrom: Date, dateTimeTo: Date, limit?: number, offset?: number) {
 	let sql = `
-    SELECT 
-      "Id",
-      "DateAndTime",
-      "ClientPhone",
-      "ClientEmail",
-      "FormName",
-      "ClientFullName"
-    FROM "IDENT_Tickets"
-    WHERE "DateAndTime" >= $1 AND "DateAndTime" <= $2
-    ORDER BY "DateAndTime"
-  `
+		SELECT 
+			"Id",
+			"DateAndTime",
+			"ClientPhone",
+			"ClientEmail",
+			"FormName",
+			"ClientFullName",
+			"ClientSurname",
+			"ClientName",
+			"ClientPatronymic",
+			"PlanStart",
+			"PlanEnd",
+			"Comment",
+			"DoctorId",
+			"DoctorName",
+			"UtmSource",
+			"UtmMedium",
+			"UtmCampaign",
+			"UtmTerm",
+			"UtmContent",
+			"HttpReferer"
+		FROM "IDENT_Tickets"
+		WHERE "DateAndTime" >= $1 AND "DateAndTime" <= $2
+		ORDER BY "DateAndTime"
+	`
 
 	const params: (Date | number)[] = [dateTimeFrom, dateTimeTo]
 
