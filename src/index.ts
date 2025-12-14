@@ -3,18 +3,25 @@ config() // dotenv
 import express, { Application, Request, Response } from 'express'
 import bodyParser from 'body-parser'
 import compression from 'compression'
+import cors from 'cors'
 import { ApiResponse } from './types/app-types'
 import { logger } from './utils/logger'
 import { getTickets } from './models/ticket'
 import { createPool } from './database/db'
 import { checkAuth } from './middlewares/auth'
-import { upsertBranches, upsertDoctors, upsertIntervals } from './models/timetable'
+import { upsertBranches, upsertDoctors, upsertIntervals, getDoctors, getBranches, getIntervals } from './models/timetable'
 import { Pool } from 'pg'
 
 const app: Application = express()
 const PORT = process.env.SERVER_PORT || 5100
 let pool: Pool
 
+app.use(
+	cors({
+		origin: 'http://localhost:8080',
+		credentials: true,
+	})
+)
 app.use(compression())
 app.use(bodyParser.json({ limit: '50mb' }))
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }))
@@ -207,6 +214,135 @@ app.post('/PostTimeTable', checkAuth, async (req: Request, res: Response) => {
 		}
 
 		return res.status(200).send('Данные успешно сохранены')
+	} catch (error) {
+		logger.error(error as Error)
+		res.status(500).send('Ошибка на сервере')
+	}
+})
+
+app.get('/GetSchedule', async (req: Request, res: Response) => {
+	try {
+		if (!pool) {
+			const msg = 'База данных не инициализирована'
+			logger.error(new Error(msg))
+			return res.status(500).send(msg)
+		}
+
+		const dateTimeFromStr = req.query.dateTimeFrom as string | undefined
+		const dateTimeToStr = req.query.dateTimeTo as string | undefined
+		const doctorIdStr = req.query.doctorId as string | undefined
+		const branchIdStr = req.query.branchId as string | undefined
+
+		let dateTimeFrom: Date | undefined
+		let dateTimeTo: Date | undefined
+		let doctorId: number | undefined
+		let branchId: number | undefined
+
+		if (dateTimeFromStr) {
+			dateTimeFrom = new Date(decodeURIComponent(dateTimeFromStr))
+			if (isNaN(dateTimeFrom.getTime())) {
+				return res.status(400).send('Формат dateTimeFrom должен быть в ISO 8601')
+			}
+		}
+
+		if (dateTimeToStr) {
+			dateTimeTo = new Date(decodeURIComponent(dateTimeToStr))
+			if (isNaN(dateTimeTo.getTime())) {
+				return res.status(400).send('Формат dateTimeTo должен быть в ISO 8601')
+			}
+		}
+
+		if (doctorIdStr) {
+			doctorId = parseInt(doctorIdStr, 10)
+			if (isNaN(doctorId)) {
+				return res.status(400).send('doctorId должен быть числом')
+			}
+		}
+
+		if (branchIdStr) {
+			branchId = parseInt(branchIdStr, 10)
+			if (isNaN(branchId)) {
+				return res.status(400).send('branchId должен быть числом')
+			}
+		}
+
+		const intervalsResult = await getIntervals(pool, dateTimeFrom, dateTimeTo, doctorId, branchId)
+		if (intervalsResult === null) {
+			const msg = 'Ошибка в БД'
+			logger.error(new Error(msg))
+			return res.status(500).send(msg)
+		}
+
+		const intervals = intervalsResult.rows.map((row) => {
+			const startDateTime = new Date(row.StartDateTime)
+			const isoDate = startDateTime.toISOString().replace(/\.\d{3}Z$/, '+00:00')
+
+			return {
+				BranchId: row.BranchId,
+				DoctorId: row.DoctorId,
+				StartDateTime: isoDate,
+				LengthInMinutes: row.LengthInMinutes,
+				IsBusy: row.IsBusy,
+				DoctorName: row.DoctorName,
+				BranchName: row.BranchName,
+			}
+		})
+
+		res.status(200).json(intervals)
+	} catch (error) {
+		logger.error(error as Error)
+		res.status(500).send('Ошибка на сервере')
+	}
+})
+
+app.get('/GetDoctors', async (req: Request, res: Response) => {
+	try {
+		if (!pool) {
+			const msg = 'База данных не инициализирована'
+			logger.error(new Error(msg))
+			return res.status(500).send(msg)
+		}
+
+		const doctorsResult = await getDoctors(pool)
+		if (doctorsResult === null) {
+			const msg = 'Ошибка в БД'
+			logger.error(new Error(msg))
+			return res.status(500).send(msg)
+		}
+
+		const doctors = doctorsResult.rows.map((row) => ({
+			Id: row.Id,
+			Name: row.Name,
+		}))
+
+		res.status(200).json(doctors)
+	} catch (error) {
+		logger.error(error as Error)
+		res.status(500).send('Ошибка на сервере')
+	}
+})
+
+app.get('/GetBranches', async (req: Request, res: Response) => {
+	try {
+		if (!pool) {
+			const msg = 'База данных не инициализирована'
+			logger.error(new Error(msg))
+			return res.status(500).send(msg)
+		}
+
+		const branchesResult = await getBranches(pool)
+		if (branchesResult === null) {
+			const msg = 'Ошибка в БД'
+			logger.error(new Error(msg))
+			return res.status(500).send(msg)
+		}
+
+		const branches = branchesResult.rows.map((row) => ({
+			Id: row.Id,
+			Name: row.Name,
+		}))
+
+		res.status(200).json(branches)
 	} catch (error) {
 		logger.error(error as Error)
 		res.status(500).send('Ошибка на сервере')

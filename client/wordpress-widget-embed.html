@@ -1,0 +1,242 @@
+<div class="ident-schedule" id="identSchedule">
+	<div class="ident-schedule-header">
+		<h2>Расписание врачей</h2>
+	</div>
+	<div class="ident-schedule-filters">
+		<select id="doctorFilter">
+			<option value="">Все врачи</option>
+		</select>
+		<select id="branchFilter">
+			<option value="">Все филиалы</option>
+		</select>
+		<input type="date" id="dateFrom" />
+		<input type="date" id="dateTo" />
+		<button onclick="identLoadSchedule()">Показать</button>
+	</div>
+	<div id="scheduleContent"></div>
+</div>
+
+<style>
+	.ident-schedule {
+		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+		max-width: 1200px;
+		margin: 20px 0;
+		padding: 20px;
+	}
+	.ident-schedule-header {
+		margin-bottom: 20px;
+	}
+	.ident-schedule-filters {
+		display: flex;
+		gap: 15px;
+		margin-bottom: 20px;
+		flex-wrap: wrap;
+	}
+	.ident-schedule-filters select,
+	.ident-schedule-filters input {
+		padding: 8px 12px;
+		border: 1px solid #ddd;
+		border-radius: 4px;
+		font-size: 14px;
+	}
+	.ident-schedule-filters button {
+		padding: 8px 16px;
+		background-color: #0073aa;
+		color: white;
+		border: none;
+		border-radius: 4px;
+		cursor: pointer;
+		font-size: 14px;
+	}
+	.ident-schedule-filters button:hover {
+		background-color: #005a87;
+	}
+	.ident-schedule-loading {
+		text-align: center;
+		padding: 40px;
+		color: #666;
+	}
+	.ident-schedule-error {
+		background-color: #f8d7da;
+		color: #721c24;
+		padding: 12px;
+		border-radius: 4px;
+		margin-bottom: 20px;
+	}
+	.ident-schedule-table {
+		width: 100%;
+		border-collapse: collapse;
+		background: white;
+		box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+	}
+	.ident-schedule-table th {
+		background-color: #f1f1f1;
+		padding: 12px;
+		text-align: left;
+		border-bottom: 2px solid #ddd;
+		font-weight: 600;
+	}
+	.ident-schedule-table td {
+		padding: 12px;
+		border-bottom: 1px solid #eee;
+	}
+	.ident-schedule-table tr:hover {
+		background-color: #f9f9f9;
+	}
+	.ident-schedule-busy {
+		color: #d63638;
+		font-weight: 600;
+	}
+	.ident-schedule-free {
+		color: #00a32a;
+		font-weight: 600;
+	}
+	.ident-schedule-empty {
+		text-align: center;
+		padding: 40px;
+		color: #666;
+	}
+</style>
+
+<script>
+	(function() {
+		const API_BASE_URL = 'http://localhost:5100';
+		
+		let doctors = [];
+		let branches = [];
+
+		async function identLoadDoctors() {
+			try {
+				const response = await fetch(`${API_BASE_URL}/GetDoctors`);
+				if (!response.ok) throw new Error('Ошибка загрузки врачей');
+				doctors = await response.json();
+				const select = document.getElementById('doctorFilter');
+				doctors.forEach(doctor => {
+					const option = document.createElement('option');
+					option.value = doctor.Id;
+					option.textContent = doctor.Name;
+					select.appendChild(option);
+				});
+			} catch (error) {
+				console.error('Ошибка загрузки врачей:', error);
+			}
+		}
+
+		async function identLoadBranches() {
+			try {
+				const response = await fetch(`${API_BASE_URL}/GetBranches`);
+				if (!response.ok) throw new Error('Ошибка загрузки филиалов');
+				branches = await response.json();
+				const select = document.getElementById('branchFilter');
+				branches.forEach(branch => {
+					const option = document.createElement('option');
+					option.value = branch.Id;
+					option.textContent = branch.Name;
+					select.appendChild(option);
+				});
+			} catch (error) {
+				console.error('Ошибка загрузки филиалов:', error);
+			}
+		}
+
+		window.identLoadSchedule = async function() {
+			const content = document.getElementById('scheduleContent');
+			content.innerHTML = '<div class="ident-schedule-loading">Загрузка...</div>';
+
+			const doctorId = document.getElementById('doctorFilter').value;
+			const branchId = document.getElementById('branchFilter').value;
+			const dateFrom = document.getElementById('dateFrom').value;
+			const dateTo = document.getElementById('dateTo').value;
+
+			const params = new URLSearchParams();
+			if (doctorId) params.append('doctorId', doctorId);
+			if (branchId) params.append('branchId', branchId);
+			if (dateFrom) {
+				const fromDate = new Date(dateFrom + 'T00:00:00');
+				params.append('dateTimeFrom', fromDate.toISOString());
+			}
+			if (dateTo) {
+				const toDate = new Date(dateTo + 'T23:59:59');
+				params.append('dateTimeTo', toDate.toISOString());
+			}
+
+			try {
+				const response = await fetch(`${API_BASE_URL}/GetSchedule?${params.toString()}`);
+				if (!response.ok) {
+					const errorText = await response.text();
+					throw new Error(errorText || 'Ошибка загрузки расписания');
+				}
+				const intervals = await response.json();
+				identDisplaySchedule(intervals);
+			} catch (error) {
+				content.innerHTML = `<div class="ident-schedule-error">Ошибка: ${error.message}</div>`;
+			}
+		}
+
+		function identDisplaySchedule(intervals) {
+			const content = document.getElementById('scheduleContent');
+			
+			if (intervals.length === 0) {
+				content.innerHTML = '<div class="ident-schedule-empty">Расписание не найдено</div>';
+				return;
+			}
+
+			let html = '<table class="ident-schedule-table">';
+			html += '<thead><tr>';
+			html += '<th>Филиал</th>';
+			html += '<th>Врач</th>';
+			html += '<th>Дата и время</th>';
+			html += '<th>Длительность</th>';
+			html += '<th>Статус</th>';
+			html += '</tr></thead><tbody>';
+
+			intervals.forEach(interval => {
+				const startDate = new Date(interval.StartDateTime);
+				const dateStr = startDate.toLocaleDateString('ru-RU', {
+					day: '2-digit',
+					month: '2-digit',
+					year: 'numeric'
+				});
+				const timeStr = startDate.toLocaleTimeString('ru-RU', {
+					hour: '2-digit',
+					minute: '2-digit'
+				});
+				const statusClass = interval.IsBusy ? 'ident-schedule-busy' : 'ident-schedule-free';
+				const statusText = interval.IsBusy ? 'Занято' : 'Свободно';
+
+				html += '<tr>';
+				html += `<td>${identEscapeHtml(interval.BranchName)}</td>`;
+				html += `<td>${identEscapeHtml(interval.DoctorName)}</td>`;
+				html += `<td>${dateStr} ${timeStr}</td>`;
+				html += `<td>${interval.LengthInMinutes} мин</td>`;
+				html += `<td class="${statusClass}">${statusText}</td>`;
+				html += '</tr>';
+			});
+
+			html += '</tbody></table>';
+			content.innerHTML = html;
+		}
+
+		function identEscapeHtml(text) {
+			const div = document.createElement('div');
+			div.textContent = text;
+			return div.innerHTML;
+		}
+
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', function() {
+				identLoadDoctors();
+				identLoadBranches();
+				const today = new Date().toISOString().split('T')[0];
+				document.getElementById('dateFrom').value = today;
+				identLoadSchedule();
+			});
+		} else {
+			identLoadDoctors();
+			identLoadBranches();
+			const today = new Date().toISOString().split('T')[0];
+			document.getElementById('dateFrom').value = today;
+			identLoadSchedule();
+		}
+	})();
+</script>

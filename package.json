@@ -38,8 +38,10 @@
 		"typescript-eslint": "^8.32.1"
 	},
 	"dependencies": {
+		"@types/cors": "^2.8.19",
 		"body-parser": "^2.2.0",
 		"compression": "^1.8.1",
+		"cors": "^2.8.5",
 		"dotenv": "^17.2.3",
 		"express": "^5.1.0",
 		"pg": "^8.16.3"

@@ -76,4 +76,70 @@ async function upsertIntervals(pool: Pool, intervals: IntervalDto[]) {
 	return await query(pool, sql, values)
 }
 
-export { upsertBranches, upsertDoctors, upsertIntervals }
+async function getDoctors(pool: Pool) {
+	const sql = `SELECT "Id", "Name" FROM "IDENT_Doctors" ORDER BY "Name"`
+	return await query(pool, sql, [])
+}
+
+async function getBranches(pool: Pool) {
+	const sql = `SELECT "Id", "Name" FROM "IDENT_Branches" ORDER BY "Name"`
+	return await query(pool, sql, [])
+}
+
+async function getIntervals(
+	pool: Pool,
+	dateTimeFrom?: Date,
+	dateTimeTo?: Date,
+	doctorId?: number,
+	branchId?: number
+) {
+	const conditions: string[] = []
+	const params: unknown[] = []
+	let paramIndex = 1
+
+	if (dateTimeFrom) {
+		conditions.push(`"StartDateTime" >= $${paramIndex}`)
+		params.push(dateTimeFrom)
+		paramIndex++
+	}
+
+	if (dateTimeTo) {
+		conditions.push(`"StartDateTime" <= $${paramIndex}`)
+		params.push(dateTimeTo)
+		paramIndex++
+	}
+
+	if (doctorId !== undefined) {
+		conditions.push(`"DoctorId" = $${paramIndex}`)
+		params.push(doctorId)
+		paramIndex++
+	}
+
+	if (branchId !== undefined) {
+		conditions.push(`"BranchId" = $${paramIndex}`)
+		params.push(branchId)
+		paramIndex++
+	}
+
+	const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
+
+	const sql = `
+		SELECT 
+			i."BranchId",
+			i."DoctorId",
+			i."StartDateTime",
+			i."LengthInMinutes",
+			i."IsBusy",
+			d."Name" as "DoctorName",
+			b."Name" as "BranchName"
+		FROM "IDENT_Intervals" i
+		INNER JOIN "IDENT_Doctors" d ON i."DoctorId" = d."Id"
+		INNER JOIN "IDENT_Branches" b ON i."BranchId" = b."Id"
+		${whereClause}
+		ORDER BY i."StartDateTime" ASC
+	`
+
+	return await query(pool, sql, params)
+}
+
+export { upsertBranches, upsertDoctors, upsertIntervals, getDoctors, getBranches, getIntervals }

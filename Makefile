@@ -2,16 +2,19 @@ include .env
 
 all: up
 
+rebuild: down up
+
 restart:
 	docker compose stop app
 	docker compose rm -f app
 	docker compose up -d --build --no-deps app
 
 up:
-	docker compose up -d --build
+	docker compose up -d --build app database
 
 down:
-	docker compose down -v
+	docker compose stop app database
+	docker compose rm -f app database
 
 exec:
 	docker exec -it smmikod-app sh
