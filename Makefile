@@ -2,6 +2,11 @@ include .env
 
 all: up
 
+restart:
+	docker compose stop app
+	docker compose rm -f app
+	docker compose up -d --build --no-deps app
+
 up:
 	docker compose up -d --build
 
@@ -15,10 +20,10 @@ exec-db:
 	docker exec -it smmikod-db psql -U $(POSTGRES_USER) -d $(POSTGRES_DB)
 
 logs:
-	docker logs -f smmikod-app
+	docker compose logs -f || true
 
-logs-db:
-	docker logs -f smmikod-db
+logs-app:
+	docker compose logs -f app || true
 
 connect:
 	psql -h $(POSTGRES_HOST) -d $(POSTGRES_DB) -U $(POSTGRES_USER)
@@ -50,6 +55,9 @@ test_timetable:
 	-H "IDENT-Integration-Key: $(IDENT_INTEGRATION_KEY)" \
 	-d @__tests__/timetable.json
 
+fmt:
+	npm run lint
+	npm run format
 
 clean:
 	@npm run clean

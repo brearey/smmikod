@@ -1,33 +1,33 @@
 {
-  "Doctors": [
-    {"Id": 201, "Name": "POST-TEST: Новый врач 1"},
-    {"Id": 202, "Name": "POST-TEST: Новый врач 2"}
-  ],
-  "Branches": [
-    {"Id": 6, "Name": "POST-TEST: Новый филиал 1"},
-    {"Id": 7, "Name": "POST-TEST: Новый филиал 2"}
-  ],
-  "Intervals": [
-    {
-      "BranchId": 6,
-      "DoctorId": 201,
-      "StartDateTime": "2025-12-25T09:00:00",
-      "LengthInMinutes": 30,
-      "IsBusy": false
-    },
-    {
-      "BranchId": 6,
-      "DoctorId": 201,
-      "StartDateTime": "2025-12-25T09:30:00",
-      "LengthInMinutes": 30,
-      "IsBusy": true
-    },
-    {
-      "BranchId": 7,
-      "DoctorId": 202,
-      "StartDateTime": "2025-12-26T14:00:00",
-      "LengthInMinutes": 60,
-      "IsBusy": false
-    }
-  ]
+	"Doctors": [
+		{ "Id": 201, "Name": "POST-TEST: Новый врач 1" },
+		{ "Id": 202, "Name": "POST-TEST: Новый врач 2" }
+	],
+	"Branches": [
+		{ "Id": 6, "Name": "POST-TEST: Новый филиал 1" },
+		{ "Id": 7, "Name": "POST-TEST: Новый филиал 2" }
+	],
+	"Intervals": [
+		{
+			"BranchId": 6,
+			"DoctorId": 201,
+			"StartDateTime": "2025-12-25T09:00:00",
+			"LengthInMinutes": 30,
+			"IsBusy": false
+		},
+		{
+			"BranchId": 6,
+			"DoctorId": 201,
+			"StartDateTime": "2025-12-25T09:30:00",
+			"LengthInMinutes": 30,
+			"IsBusy": true
+		},
+		{
+			"BranchId": 7,
+			"DoctorId": 202,
+			"StartDateTime": "2025-12-26T14:00:00",
+			"LengthInMinutes": 60,
+			"IsBusy": false
+		}
+	]
 }
