@@ -1,0 +1,148 @@
+# Правила для проекта интеграции IDENT
+
+## Общие принципы
+
+- Отвечай на русском языке
+- Не выдавай высокоуровневые ответы, давай конкретное решение применимое к проекту
+- Не пиши комментарии в коде
+- Не давай детальные пояснения, но описывай зачем вносишь данные изменения
+- Перед тем как внести изменения, опиши общий план реализации по пунктам и после приступай к реализации
+- Учитывай все линтеры при формировании кода
+
+## Архитектура проекта
+
+Проект - это Node.js/TypeScript сервер для интеграции с системой IDENT (запись к врачам).
+
+- Express.js для HTTP API
+- PostgreSQL для хранения данных
+- TypeScript строгая типизация
+- Структура: models (работа с БД), middlewares (авторизация), utils (логирование), types (типы)
+
+## Требования IDENT API
+
+### Авторизация
+- Все запросы к `/GetTickets` и `/PostTimeTable` требуют header `IDENT-Integration-Key`
+- При отсутствии или неверном ключе возвращать 403 с текстовым сообщением
+- Использовать middleware `checkAuth` из `src/middlewares/auth.ts`
+
+### GetTickets (GET)
+- Параметры: `dateTimeFrom`, `dateTimeTo` (обязательные, ISO 8601), `limit`, `offset` (опциональные)
+- Фильтрация: `dateTimeFrom <= DateAndTime <= dateTimeTo` (включительно)
+- Возвращать массив объектов в JSON
+- Формат даты в ответе: ISO 8601 `YYYY-MM-DDTHH:mm:ss±hh:mm` или `YYYY-MM-DDTHH:mm:ss`
+- При отсутствии параметров или неверном формате возвращать 400 с текстовым сообщением
+- При ошибке БД возвращать 500 с текстовым сообщением
+
+### PostTimeTable (POST)
+- Принимает JSON: `{ Doctors: [], Branches: [], Intervals: [] }`
+- Валидировать структуру: все поля должны быть массивами
+- Валидировать типы полей:
+  - Branches: `{ Id: number, Name: string }`
+  - Doctors: `{ Id: number, Name: string }`
+  - Intervals: `{ BranchId: number, DoctorId: number, StartDateTime: string (ISO 8601), LengthInMinutes: number, IsBusy: boolean }`
+- При неверном формате возвращать 400 с текстовым сообщением
+- Использовать upsert операции (ON CONFLICT DO UPDATE)
+- При ошибке БД возвращать 500 с текстовым сообщением
+- При успехе возвращать 200 с текстовым сообщением
+
+### Обработка ошибок
+- Все ошибки кроме 401/403 возвращать с кодами 4XX/5XX, не 2XX
+- Текст ошибки в теле ответа, не HTML
+- Логировать все ошибки через `logger.error(error as Error)`
+- Использовать `logger.info()` для информационных сообщений
+
+## Структура БД PostgreSQL
+
+### Таблицы
+- `IDENT_Branches`: `Id` (PK, int), `Name` (varchar)
+- `IDENT_Doctors`: `Id` (PK, int), `Name` (varchar)
+- `IDENT_Tickets`: `Id` (PK, varchar(400)), `DateAndTime` (timestamp), поля клиента, UTM-метки, комментарии
+- `IDENT_Intervals`: составной PK `(BranchId, DoctorId, StartDateTime)`, `LengthInMinutes` (int), `IsBusy` (boolean)
+
+### Ограничения
+- Таблицы используют кавычки для имен: `"IDENT_Tickets"`
+- Валидация полей имени: либо `ClientFullName`, либо `ClientSurname/ClientName/ClientPatronymic`
+- Проверка дат: `PlanEnd >= PlanStart`, продолжительность <= 12 часов
+- Foreign keys: Intervals ссылаются на Branches и Doctors с CASCADE
+
+### Работа с БД
+- Использовать параметризованные запросы (`$1, $2, ...`)
+- Функции работы с БД в `src/models/`
+- Использовать `query()` из `src/database/db.ts` для всех запросов
+- Обрабатывать null результат как ошибку БД
+
+## Стиль кода
+
+### TypeScript
+- Строгая типизация, избегать `any`
+- Использовать типы из `src/types/app-types.ts` где применимо
+- Экспортировать типы для DTO (например, `BranchDto`, `DoctorDto`, `IntervalDto`)
+
+### Express
+- Использовать async/await для асинхронных операций
+- Обрабатывать ошибки в try/catch
+- Возвращать корректные HTTP статусы
+
+### Именование
+- Функции: camelCase (`getTickets`, `upsertBranches`)
+- Таблицы/колонки: PascalCase в кавычках (`"IDENT_Tickets"`, `"DateAndTime"`)
+- Типы: PascalCase (`ApiResponse`, `BranchDto`)
+
+### Форматирование
+- Использовать табы для отступов
+- Следовать правилам ESLint из `eslint.config.mjs`
+- Использовать Prettier для форматирования
+
+## Примеры паттернов
+
+### Обработка запроса с валидацией
+```typescript
+app.get('/GetTickets', checkAuth, async (req: Request, res: Response) => {
+	try {
+		const dateTimeFromStr = req.query.dateTimeFrom as string
+		if (!dateTimeFromStr) {
+			return res.status(400).send('Параметры dateTimeFrom обязательны')
+		}
+		const dateTimeFrom = new Date(decodeURIComponent(dateTimeFromStr))
+		if (isNaN(dateTimeFrom.getTime())) {
+			return res.status(400).send('Формат даты должны быть в ISO 8601')
+		}
+		// ... обработка
+	} catch (error) {
+		logger.error(error as Error)
+		res.status(500).send('Ошибка на сервере')
+	}
+})
+```
+
+### Работа с БД
+```typescript
+async function getTickets(pool: Pool, dateTimeFrom: Date, dateTimeTo: Date, limit?: number, offset?: number) {
+	let sql = `SELECT ... FROM "IDENT_Tickets" WHERE ...`
+	const params: (Date | number)[] = [dateTimeFrom, dateTimeTo]
+	if (limit !== undefined) {
+		params.push(limit)
+		sql += ` LIMIT $${params.length}`
+	}
+	return await query(pool, sql, params)
+}
+```
+
+### Upsert операция
+```typescript
+const sql = `
+	INSERT INTO "IDENT_Branches" ("Id", "Name")
+	VALUES ${placeholders.join(', ')}
+	ON CONFLICT ("Id") DO UPDATE
+	SET "Name" = EXCLUDED."Name"
+`
+```
+
+## Важные моменты
+
+- Формат даты ISO 8601 критичен для IDENT
+- При итерационной загрузке (limit/offset) возвращать пустой массив при отсутствии данных, не ошибку
+- Все текстовые сообщения об ошибках на русском языке
+- Логирование всех операций через `logger`
+- Сжатие ответов через `compression()` middleware
+- Body parser с лимитом 50mb для больших расписаний
