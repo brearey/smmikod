@@ -37,33 +37,33 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
-  wordpress:
-    image: wordpress
-    restart: always
-    ports:
-      - 8080:80
-    environment:
-      WORDPRESS_DB_HOST: wp-database
-      WORDPRESS_DB_USER: ${WORDPRESS_DB_USER}
-      WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD}
-      WORDPRESS_DB_NAME: ${WORDPRESS_DB_NAME}
-    volumes:
-      - wordpress:/var/www/html
-    depends_on:
-      - wp-database
+  # wordpress:
+  #   image: wordpress
+  #   restart: always
+  #   ports:
+  #     - 8080:80
+  #   environment:
+  #     WORDPRESS_DB_HOST: wp-database
+  #     WORDPRESS_DB_USER: ${WORDPRESS_DB_USER}
+  #     WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD}
+  #     WORDPRESS_DB_NAME: ${WORDPRESS_DB_NAME}
+  #   volumes:
+  #     - wordpress:/var/www/html
+  #   depends_on:
+  #     - wp-database
 
-  wp-database:
-    image: mysql:8.0
-    restart: always
-    environment:
-      MYSQL_DATABASE: ${WORDPRESS_DB_NAME}
-      MYSQL_USER: ${WORDPRESS_DB_USER}
-      MYSQL_PASSWORD: ${WORDPRESS_DB_PASSWORD}
-      MYSQL_RANDOM_ROOT_PASSWORD: '1'
-    volumes:
-      - wp-database:/var/lib/mysql
+  # wp-database:
+  #   image: mysql:8.0
+  #   restart: always
+  #   environment:
+  #     MYSQL_DATABASE: ${WORDPRESS_DB_NAME}
+  #     MYSQL_USER: ${WORDPRESS_DB_USER}
+  #     MYSQL_PASSWORD: ${WORDPRESS_DB_PASSWORD}
+  #     MYSQL_RANDOM_ROOT_PASSWORD: '1'
+  #   volumes:
+  #     - wp-database:/var/lib/mysql
 
 volumes:
   postgres_data:
-  wordpress:
-  wp-database:
+  # wordpress:
+  # wp-database:
